@@ -4136,7 +4136,7 @@
    <!-- <a rel="dynamic-content" href="res:HCLSoftwareTheme/themes/html/dynamicSpots/tail.jsp"></a>-->
 </body>
 
-<!--
+   <!--
 #  ******************************************************************************
 #  Licensed Materials - Property of HCL Technologies Ltd.
 #  Unica Interact
@@ -4151,112 +4151,37 @@
 #  ***************************************************************************************************
 -->
 
-<!-- BEGIN: Unica Interact RTP Page Tag Script for page: Credit Card -->
+<!-- BEGIN: Unica Interact RTP Page Tag Script for page: Credit Card v01 -->
 
 <script type="text/javascript">
      const audienceFieldName = "_RTP_CustomerID";
 </script>
 
-
 <script language="javascript" type="text/javascript">
 
-function requestPersonalizationPointTag(ppName) {
-    console.debug("requestPersonalizationPointTag()");
-    var audienceStr = readInteractAudience();
-    if (audienceStr === '') {
-        console.warn("AudienceFields not found in cookie/localStorage so skipping the Interact call.");
-        return;
-    }
-    var unicaRTPConnectorURL = getInteractURL() + "/pageTag?src=rtp&res=true&dbg=false";
-    var unicaURLData = "&partition=partition1&ic=1&pg=6986&pp="+ ppName;
+function requestPersonalizationPointTag(partition, icID, pageID, ppName)
+{
+console.log("RT enter");
+var resultString = document.cookie.split('; ').filter(cookie => cookie.startsWith('_RTP_'))
+.map(cookie => {const [key, value] = cookie.split('=');const cleanedKey = key.replace(/^_RTP_/, '');
+return `${cleanedKey}=${value}`;}).join(';'); if (resultString === '') {resultString = Object.keys(localStorage)
+.filter(key => key.startsWith('_RTP_')).map(key => key.replace(/^_RTP_/, '') + "=" + localStorage[key]).join(';');}
+if (resultString === '') {console.log("AudienceFields not found in cookie/localStorage so skipping the RTP call.");
+return;} var unicaRTPConnectorURL = "https://unicatango.hxun.now.hclsoftware.cloud/interact/pageTag?src=rtp&res=true&dbg=true";
+var unicaURLData = "&partition="+partition+"&ic="+ icID +"&pg="+ pageID +"&pp="+ ppName;
+try { unicaURLData += "&title=" + encodeURIComponent(document.title) } catch (err) {}
+try { unicaURLData += "&referrer=" + encodeURIComponent(document.referrer) } catch (err) {}
+try { unicaURLData += "&cookie=" + encodeURIComponent(resultString) } catch (err) {}
+try { unicaURLData += "&browser=" + encodeURIComponent(navigator.userAgent) } catch (err) {}
+try { unicaURLData += "&screensize=" + encodeURIComponent(screen.width + "x" + screen.height) } catch (err) {}
+var s = document.createElement( 'script' ); s.setAttribute( 'src', unicaRTPConnectorURL + unicaURLData );
+document.body.appendChild(s); }
 
-	try { unicaURLData += "&title=" + encodeURIComponent(document.title) } catch (err) {}
-	try { unicaURLData += "&referrer=" + encodeURIComponent(document.referrer) } catch (err) {}
-	try { unicaURLData += "&cookie=" + encodeURIComponent(audienceStr) } catch (err) {}
-	try { unicaURLData += "&browser=" + encodeURIComponent(navigator.userAgent) } catch (err) {}
-	try { unicaURLData += "&screensize=" + encodeURIComponent(screen.width + "x" + screen.height) } catch (err) {}
-
-    console.debug("Unica Interact URL: " + unicaRTPConnectorURL + unicaURLData);
-    var s = document.createElement('script');
-    s.setAttribute('src', unicaRTPConnectorURL + unicaURLData);
-    document.body.appendChild(s);
-}
-
-function getInteractURL() {
-	return "https://unicatango.hxun.now.hclsoftware.cloud/interact";
-}
-
-function readInteractAudience() {
-    var resultString = document.cookie.split('; ').filter(cookie => cookie.startsWith('_RTP_')).map(cookie => {
-        const [key, value] = cookie.split('=');
-        const cleanedKey = key.replace(/^_RTP_/, '');
-        return `${cleanedKey}=${value}`;
-    }).join(';');
-    console.debug("readInteractAudience() -> cookie value: " + resultString);
-    if (resultString === '') {
-        resultString = Object.keys(localStorage).filter(key => key.startsWith('_RTP_')).map(key => key.replace(/^_RTP_/, '') + "=" + localStorage[key]).join(';');
-        console.debug("readInteractAudience() -> localStorage value: " + resultString);
-        return resultString;
-    }
-}
-
-function readCookiesForEventParameters() {
-    var resultString = document.cookie.split('; ').filter(cookie => (cookie !== '')).map(cookie => {
-        const [key, value] = cookie.split('=');
-        return `${key}=${value}`;
-    }).join(';');
-    console.debug("readCookiesForEventParameters() -> cookie value: " + resultString);
-    if (resultString === '') {
-        resultString = Object.keys(localStorage).map(key => key + "=" + localStorage[key]).join(';');
-        console.debug("readCookiesForEventParameters() -> localStorage value: " + resultString);
-        return resultString;
-    }
-}
-
-async function postInteractEvent(eventName, elementID) {
-    console.debug("postInteractEvent(), Event Name: " + eventName + ", elementID: " + elementID);
-    var audienceStr = readInteractAudience();
-    if (audienceStr === '') {
-        console.warn("AudienceFields not found in cookie/localStorage so skipping the Interact post Event call.");
-        return;
-    }
-    var otherCookieValues = readCookiesForEventParameters();
-    var unicaRTPConnectorURL = getInteractURL() + "/clickThru?src=rtp&res=true&dbg=false";
-    var unicaURLData = "&pt=partition1&i=_RealTimePersonalization_&pg=6986&e=" + eventName;
-	if(typeof elementID !== 'undefined' && elementID !== '') {
-		try { unicaURLData += "&elmid=" + encodeURIComponent(elementID) } catch (err) {}
-	}
-	try { unicaURLData += "&cookie=" + encodeURIComponent(audienceStr) } catch (err) {}
-    try { unicaURLData += "&ep=" + encodeURIComponent(otherCookieValues) } catch (err) {}
-    console.debug("Unica Interact URL for posting Event: " + unicaRTPConnectorURL + unicaURLData);
-    try {
-        const response = await fetch(unicaRTPConnectorURL + unicaURLData);
-        if (!response.ok) {
-            throw new Error(`Response status: ${response.status}`);
-        }
-        console.debug("Unica Interact event " + eventName + " posted successfully.");
-    } catch (error) {
-        console.error(error.message);
-    }
-}
-
-function addInteractPostEventListener(elementID, eventName) {
-    console.debug("addInteractPostEventListener(), elementID: " + elementID);
-    var htmlElement = document.getElementById(elementID);
-    if (htmlElement) {
-        console.debug("Adding Interact postEvent(" + eventName + ") call on click of element: " + elementID);
-        htmlElement.addEventListener("click", (e) => {
-            postInteractEvent(eventName, elementID);
-        });
-    }
-}
-
-requestPersonalizationPointTag("CC_TOP_RIGHT");
-
-
+requestPersonalizationPointTag("partition1", 1, 20, "PP_Credit_CardTopBanner");
 
 </script>
 <noscript><style type="text/css">.unicainteractoffer {display:none !important;}</style></noscript>
 
 <!-- END: Unica Interact RTP Page Tag Script -->
+
 </html>
